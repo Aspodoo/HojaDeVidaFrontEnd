@@ -12,68 +12,73 @@ import './App.css';
 function App() {
   const [paso, setPaso] = useState(1);
 
-  //datos compartidos
-  const [persona,setPersona] = useState({
-    
-    
-    //datos personales de la persona
+  const [persona, setPersona] = useState({
     foto: null,
-    nombre:"",
-    edad:"",
-    ciudad:"",
-    correo:"",
-    programa:"",
-    ficha:"",
-    jornada:"Mañana",
+    nombre: "",
+    edad: "",
+    ciudad: "",
+    correo: "",
+    programa: "",
+    ficha: "",
+    jornada: "Mañana",
 
-    //informmación de estudios
-    nivel:"",
-    institucion:"",
-    titulo:"",
-    anio:"",
-    cursos:[],
+    nivel: "",
+    institucion: "",
+    titulo: "",
+    anio: "",
+    cursos: [],
 
-    //experiencia
     experiencias: []
+  });
 
-
-  })
-
-//Conectar react con Flask
   const guardarhojavida = async () => {
-
-    try{
-
-    const datosapi = {
+    try {
+      const datosapi = {
         nombre: persona.nombre,
         edad: persona.edad,
         ciudad: persona.ciudad,
         correo: persona.correo,
+        fotografia: persona.foto ? persona.foto.name || "" : "",
         programa: persona.programa,
         ficha: persona.ficha,
-        jornada: persona.jornada
-    };
-    const respuesta = await fetch(
-      "http://127.0.0.1:5000/api/registrohv",
-      {
+        jornada: persona.jornada,
+
+        // Formación académica
+        nivel: persona.nivel,
+        institucion: persona.institucion,
+        titulo: persona.titulo,
+        anio: persona.anio,
+        cursos: persona.cursos,
+
+        // Experiencias con funciones y habilidades
+        experiencias: persona.experiencias
+      };
+
+      const respuesta = await fetch("http://127.0.0.1:5000/api/registrohv", {
         method: "POST",
-        headers:{
+        headers: {
           "Content-Type": "application/json"
         },
         body: JSON.stringify(datosapi)
+      });
+
+      const resultado = await respuesta.json();
+
+      if (!respuesta.ok) {
+        console.error("Error del servidor:", resultado.mensaje);
+        alert(resultado.mensaje || "Error al registrar la hoja de vida");
+        return false;
       }
-    );
 
-    const resultado = await respuesta.json();
-    console.log("Respuesta realizada:", resultado);
+      console.log("Registro exitoso:", resultado);
+      alert("¡Hoja de vida registrada con éxito!");
+      return true;
 
-
-    }catch (error){
-      console.error(
-        "Error al conectar con Flask",error
-    );
-  }
-
+    } catch (error) {
+      console.error("Error al conectar con Flask:", error);
+      alert("No se pudo conectar con el servidor Flask.");
+      return false;
+    }
   };
 
   return (
@@ -82,16 +87,16 @@ function App() {
 
       {paso === 1 && (
         <FormularioDatos 
-        persona = {persona}
-        setPersona = {setPersona}
-        siguiente={() => setPaso(2)} 
+          persona={persona}
+          setPersona={setPersona}
+          siguiente={() => setPaso(2)} 
         />
       )}
 
       {paso === 2 && (
         <FormacionAcademica
-          persona = {persona}
-          setPersona = {setPersona}
+          persona={persona}
+          setPersona={setPersona}
           anterior={() => setPaso(1)}
           siguiente={() => setPaso(3)}
         />
@@ -99,8 +104,8 @@ function App() {
 
       {paso === 3 && (
         <ExperienciaLaboral
-          persona = {persona}
-          setPersona = {setPersona}
+          persona={persona}
+          setPersona={setPersona}
           anterior={() => setPaso(2)}
           siguiente={() => setPaso(4)}
         />
@@ -108,10 +113,9 @@ function App() {
 
       {paso === 4 && (
         <VistaPrevia
-          persona = {persona}
+          persona={persona}
           anterior={() => setPaso(3)}
-          enviar={() => {
-          }}
+          enviar={guardarhojavida}
         />
       )}
 
