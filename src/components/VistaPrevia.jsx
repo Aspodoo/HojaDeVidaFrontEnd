@@ -1,14 +1,24 @@
-import React from 'react';
+import { useState } from 'react';
 
 function VistaPrevia({ persona, anterior, enviar }) {
+  const [enviando, setEnviando] = useState(false);
 
   const confirmarEnvio = async () => {
-    if (enviar) {
+    if (!enviar || enviando) return;
+    setEnviando(true);
+    try {
       await enviar();
+    } finally {
+      setEnviando(false);
     }
   };
 
-  const urlFoto = persona.foto ? URL.createObjectURL(persona.foto) : null;
+  const urlFoto =
+    persona.foto instanceof File
+      ? URL.createObjectURL(persona.foto)
+      : typeof persona.foto === 'string' && persona.foto
+      ? persona.foto
+      : null;
 
   return (
     <div className="pagina-formacion">
@@ -19,17 +29,7 @@ function VistaPrevia({ persona, anterior, enviar }) {
 
         {urlFoto && (
           <div className="contenedor-foto" style={{ textAlign: 'center', marginBottom: '20px' }}>
-            <img 
-              src={urlFoto} 
-              alt="Fotografía del aprendiz" 
-              style={{
-                width: '130px',
-                height: '130px',
-                objectFit: 'cover',
-                borderRadius: '50%',
-                border: '3px solid #007bff'
-              }} 
-            />
+            <img src={urlFoto} alt="Fotografía del aprendiz" />
           </div>
         )}
 
@@ -44,8 +44,6 @@ function VistaPrevia({ persona, anterior, enviar }) {
           <p><strong>Jornada:</strong> {persona.jornada}</p>
         </section>
 
-        <hr />
-
         <section className="seccion-resumen">
           <h3>Formación Académica</h3>
           <p><strong>Nivel:</strong> {persona.nivel}</p>
@@ -57,15 +55,15 @@ function VistaPrevia({ persona, anterior, enviar }) {
           {persona.cursos && persona.cursos.length > 0 ? (
             <ul>
               {persona.cursos.map((curso, indice) => (
-                <li key={indice}>{curso}</li>
+                <li key={indice}>
+                  {typeof curso === 'string' ? curso : curso.nombre}
+                </li>
               ))}
             </ul>
           ) : (
             <p>No se registraron cursos.</p>
           )}
         </section>
-
-        <hr />
 
         <section className="seccion-resumen">
           <h3>Experiencia Laboral</h3>
@@ -76,7 +74,7 @@ function VistaPrevia({ persona, anterior, enviar }) {
                 <p><strong>Empresa:</strong> {exp.empresa}</p>
                 <p><strong>Cargo:</strong> {exp.cargo}</p>
                 <p><strong>Tiempo:</strong> {exp.tiempo}</p>
-                
+
                 <p><strong>Funciones:</strong></p>
                 <ul>
                   {Array.isArray(exp.funciones) ? (
@@ -89,12 +87,13 @@ function VistaPrevia({ persona, anterior, enviar }) {
                 <p><strong>Habilidades:</strong></p>
                 <ul>
                   {Array.isArray(exp.habilidades) ? (
-                    exp.habilidades.map((h, i) => <li key={i}>{h}</li>)
+                    exp.habilidades.map((h, i) => (
+                      <li key={i}>{typeof h === 'string' ? h : h.nombre}</li>
+                    ))
                   ) : (
                     <li>{exp.habilidades}</li>
                   )}
                 </ul>
-                <hr />
               </div>
             ))
           ) : (
@@ -103,17 +102,23 @@ function VistaPrevia({ persona, anterior, enviar }) {
         </section>
 
         <div className="botones">
-          <button type="button" className="btn" onClick={anterior}>
+          <button
+            type="button"
+            className="btn"
+            onClick={anterior}
+            disabled={enviando}
+          >
             ← Editar datos
           </button>
 
-          <button 
-            type="button" 
-            className="btn" 
-            onClick={confirmarEnvio} 
-            style={{ backgroundColor: '#28a745', color: 'white' }}
+          <button
+            type="button"
+            className="btn"
+            onClick={confirmarEnvio}
+            disabled={enviando}
+            style={{ backgroundColor: '#16a34a', color: '#ffffff' }}
           >
-            Confirmar y Enviar →
+            {enviando ? 'Guardando hoja de vida...' : 'Confirmar y Enviar →'}
           </button>
         </div>
       </div>
